@@ -1,0 +1,72 @@
+﻿.tf-board-scroll {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(6, minmax(208px, 1fr));
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.tf-board-col__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.tf-board-col__dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.tf-board-col__name { font-size: 17px; font-weight: 800; color: var(--tf-gray-700); letter-spacing: .3px; }
+.tf-board-col__count { border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+
+.tf-board-col__zone {
+  min-height: 220px;
+  border-radius: 14px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tf-board-col__zone--over { border-style: solid; }
+
+.tf-board-col__empty {
+  text-align: center;
+  color: var(--tf-gray-300);
+  font-size: 15px;
+  padding: 24px 8px;
+  border: 1px dashed var(--tf-border);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.tf-board-task-modal { padding: 16px; }
+.tf-board-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.tf-board-action-btn { width: 32px; height: 32px; border: 1px solid var(--tf-border); border-radius: 10px; background: #fff; color: var(--tf-gray-700); }
+.tf-board-action-btn--danger { color: #dc2626; border-color: #fecaca; }
+.tf-board-action-btn--save { color: #2563eb; border-color: #bfdbfe; }
+.tf-board-action-btn--close { color: #111827; }
+.tf-board-detail__head { margin-bottom: 10px; }
+.tf-board-detail__chips { display: flex; gap: 6px; margin-bottom: 8px; }
+.tf-board-detail__section-label { margin: 8px 0; }
+.tf-board-detail__grid { display: grid; gap: 8px; }
+.tf-board-detail__row { display: flex; justify-content: space-between; align-items: center; background: var(--tf-gray-50); border: 1px solid var(--tf-border); border-radius: 10px; padding: 9px 10px; }
+.tf-board-detail__k { display: inline-flex; align-items: center; gap: 6px; color: var(--tf-gray-500); font-weight: 700; font-size: 12px; }
+.tf-board-detail__v { color: var(--tf-gray-900); font-weight: 700; font-size: 13px; }
+
+.tf-board-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 767px) {
+  .tf-board-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 991px) {
+  .tf-board-scroll { grid-template-columns: repeat(6, minmax(230px, 1fr)); }
+}
