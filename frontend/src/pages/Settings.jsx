@@ -110,7 +110,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="tf-fade-up d-grid gap-3">
+    <div className="tf-fade-up tf-settings-page d-grid gap-3">
       {msg.text && <div className={`tf-alert tf-alert-${msg.type}`}>{msg.text}</div>}
 
       <div className="tf-card" style={{ padding: 16 }}>

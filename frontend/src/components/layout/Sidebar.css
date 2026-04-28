@@ -50,3 +50,30 @@
   .tf-sidebar--open { left: 0; }
   .tf-sidebar__mobile-close { display: inline-flex; align-items: center; justify-content: center; }
 }
+
+/* Responsive sidebar refinements */
+@media (max-width: 991px) {
+  .tf-sidebar {
+    max-width: min(86vw, 280px);
+    box-shadow: 18px 0 40px rgba(2, 6, 23, 0.28);
+  }
+
+  .tf-sidebar--collapsed {
+    width: 260px;
+  }
+
+  .tf-sidebar--collapsed .tf-sidebar__nav-item-label,
+  .tf-sidebar--collapsed .tf-sidebar__user-name,
+  .tf-sidebar--collapsed .tf-sidebar__user .min-w-0,
+  .tf-sidebar--collapsed .tf-sidebar__section-label {
+    display: initial;
+  }
+}
+
+@media (max-width: 420px) {
+  .tf-sidebar {
+    width: 82vw;
+    left: -86vw;
+    padding: 8px;
+  }
+}

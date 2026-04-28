@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../api/services';
 
 const ALLOWED_EMAIL_DOMAINS = ['xtsworld.in', 'gmail.com'];
@@ -10,9 +10,11 @@ function isAllowedDomain(email) {
 }
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [msg, setMsg] = useState({ type: '', text: '' });
   const [fieldError, setFieldError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   function flash(text, type = 'error') {
     setMsg({ type, text });
@@ -21,6 +23,7 @@ export default function ForgotPassword() {
 
   async function onSubmit(e) {
     e.preventDefault();
+    if (loading) return;
     setFieldError('');
     setMsg({ type: '', text: '' });
 
@@ -41,8 +44,10 @@ export default function ForgotPassword() {
     }
 
     try {
+      setLoading(true);
       await authService.forgotPassword({ email: trimmedEmail });
       flash('Reset link sent to your email.', 'success');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       const apiErrors = err.response?.data?.errors;
       if (Array.isArray(apiErrors) && apiErrors.length) {
@@ -53,6 +58,8 @@ export default function ForgotPassword() {
         }
       }
       flash(err.response?.data?.message || 'Failed to send reset link');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -65,7 +72,9 @@ export default function ForgotPassword() {
         <label className="tf-label mb-1">EMAIL ADDRESS</label>
         <input className={`tf-input${fieldError ? ' tf-input--error' : ''}`} style={{ marginBottom: fieldError ? 6 : 12 }} type="email" value={email} onChange={(e) => { setEmail(e.target.value); setFieldError(''); }} autoComplete="email" />
         {fieldError && <div className="tf-field-error mb-2">{fieldError}</div>}
-        <button className="tf-btn tf-btn-primary" style={{ width: '100%' }}>Send Reset Link</button>
+        <button className="tf-btn tf-btn-primary" style={{ width: '100%' }} disabled={loading}>
+          {loading ? 'Sending...' : 'Send Reset Link'}
+        </button>
       </form>
       <div className="text-center mt-3 tf-subtext">Remembered your password? <Link to="/login" style={{ fontWeight: 700 }}>Back to login</Link></div>
     </div>

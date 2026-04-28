@@ -75,8 +75,8 @@ export default function AuthLayout() {
               style={{ height: 100, objectFit: 'contain' }}
             />
           </div>
-          <h1 style={{ fontSize: 54, fontWeight: 800, margin: 0, lineHeight: 1.1 }}>Workflows that stay sharp.</h1>
-          <p style={{ marginTop: 18, color: '#b6c9f2', fontSize: 20 }}>Plan, assign, and ship with one workspace.</p>
+          <h1 style={{ fontSize: 54, fontWeight: 800, margin: 0, lineHeight: 1.1 }}>Stay on top of every project.</h1>
+          <p style={{ marginTop: 18, color: '#b6c9f2', fontSize: 20 }}>Plan work, follow progress, review blockers, and deliver on time with one shared workspace.</p>
           
           {/* Team Avatars */}
           <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', gap: 12 }}>

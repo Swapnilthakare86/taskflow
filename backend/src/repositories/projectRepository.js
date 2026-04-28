@@ -1,8 +1,12 @@
 // Purpose: Executes database queries and returns data models.
+// Data access layer for project CRUD and team member management
+// Includes complex joins for task aggregation (count, status breakdown, completion %)
+// Manages project-member associations and project invites
 'use strict';
 const db = require('../config/db');
 
-// Define columns for project queries including aggregated task stats
+// Define columns for project queries with aggregated task statistics
+// Includes owner info (name, initials, color) and calculated task metrics
 const PROJECT_COLS = `
   p.id, p.name, p.code, p.description, p.color, p.status,
   p.deadline, p.owner_id, p.created_at, p.updated_at,
@@ -14,6 +18,7 @@ const PROJECT_COLS = `
   COALESCE(ta.progress, 0) AS progress`;
 
 // LEFT JOIN to get task aggregations (count, completion %) per project
+// Calculated in subquery: total tasks, done count, in-progress count, completion percentage
 const TASK_AGG_JOIN = `
   LEFT JOIN (
     SELECT
@@ -30,7 +35,8 @@ const TASK_AGG_JOIN = `
     GROUP BY t.project_id
   ) ta ON ta.project_id = p.id`;
 
-// Get all projects with statistics
+// FIND all projects in the system (admin view)
+// Includes owner and aggregated task statistics
 async function findAll() {
   const [rows] = await db.execute(
     `SELECT ${PROJECT_COLS} FROM projects p
@@ -41,7 +47,9 @@ async function findAll() {
   return rows;
 }
 
-// Get all projects user is a member of
+// FIND all projects user is a member of (user-scoped view)
+// INNER JOINs project_members to filter only projects user has access to
+// Includes same aggregated statistics and owner info
 async function findByUserId(userId) {
   const [rows] = await db.execute(
     `SELECT ${PROJECT_COLS}

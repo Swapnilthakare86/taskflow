@@ -48,7 +48,7 @@ export default function ProjectHeader({ project, user, onInvite, onMemberSelect,
                 <button
                   type="button"
                   key={m.id}
-                  title={`${m.name} (${String(m.role || '').toUpperCase()})`}
+                  title={m.name}
                   className={`tf-proj-header__avatar-btn${Number(selectedMemberId) === Number(m.id) ? ' tf-proj-header__avatar-btn--active' : ''}`}
                   style={{ marginLeft: idx ? -8 : 0, zIndex: 20 - idx }}
                   onClick={() => onMemberSelect?.(m)}

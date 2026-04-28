@@ -1,4 +1,7 @@
 // Purpose: Contains business logic and orchestrates repository calls.
+// Handles authentication workflows: login, registration, password reset
+// Security: Uses bcryptjs (12+ rounds) for password hashing, JWT for token generation
+// All errors thrown as AppError with appropriate HTTP status codes
 'use strict';
 const bcrypt     = require('bcryptjs');
 const crypto     = require('crypto');
@@ -9,15 +12,21 @@ const userRepo   = require('../repositories/userRepository');
 const passwordResetRepo = require('../repositories/passwordResetRepository');
 const mailService = require('./mailService');
 
+// LOGIN: Authenticate user by email/password and return JWT token
+// Validates user exists, is active, and password matches
+// Returns: { token, user } where token is JWT and user is sanitized (no password hash)
 async function login(email, password) {
   const user = await userRepo.findByEmail(email);
   if (!user) throw new AppError('Email is not registered. Please register first.', 404);
   if (!user.is_active) throw new AppError('Your account has been disabled. Please contact support.', 403);
 
+  // Compare provided password against bcrypt hash (timing-safe comparison)
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) throw new AppError('Password is incorrect.', 401);
 
+  // Generate JWT token with user id and role for middleware verification
   const token = signToken({ id: user.id, role: user.role });
+  // Remove password hash from response (destructuring with unused variable _pw)
   const { password_hash: _pw, ...safeUser } = user;
   return { token, user: safeUser };
 }

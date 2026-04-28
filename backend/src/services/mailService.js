@@ -55,7 +55,7 @@ async function sendMailSafe({ to, subject, html, text }) {
 }
 
 async function sendPasswordReset({ toEmail, userName, resetUrl }) {
-  const subject = 'Reset your TaskFlow password';
+  const subject = 'Reset your password';
   const text = [
     `Hi ${userName},`,
     '',

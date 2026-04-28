@@ -1,11 +1,15 @@
 // Purpose: Contains business logic and orchestrates repository calls.
+// Manages task workflows: creation, status updates, assignments
+// Handles permission checks (non-admins can only access their project tasks)
+// Triggers notifications for task events (creation, status change, assignment)
 'use strict';
 const AppError = require('../utils/AppError');
 const taskRepo = require('../repositories/taskRepository');
 const projectRepo = require('../repositories/projectRepository');
 const notifRepo = require('../repositories/notificationRepository');
 
-// Create notification for multiple users about task event
+// HELPER: Broadcast notification to multiple users for task event
+// Deduplicates user IDs and creates notification record for each
 async function createNotificationForUsers(userIds, payload) {
   const uniqueIds = [...new Set(userIds.map(Number).filter(Boolean))];
   for (const uid of uniqueIds) {
@@ -19,9 +23,11 @@ async function createNotificationForUsers(userIds, payload) {
   }
 }
 
-// Get all tasks in project with permission check (non-admins can only see their own projects)
+// GET all tasks in project with permission check (non-admins can only see their own projects)
+// Admins bypass project membership check; others must be team members
 async function getTasksByProject(projectId, user) {
   if (user.role !== 'admin') {
+    // Non-admins must be project members to view tasks
     const ok = await projectRepo.isMember(projectId, user.id);
     if (!ok) throw new AppError('Access denied to this project.', 403);
   }
@@ -34,7 +40,10 @@ async function getTaskById(id) {
   return task;
 }
 
+// CREATE new task with validation and notification triggers
+// Validates assignee is project member; notifies reporter, assignee, and project owner
 async function createTask(projectId, data, reporter) {
+  // Fetch project members to validate assignee
   const memberIds = await projectRepo.getMemberIds(projectId);
   if (!memberIds.includes(Number(data.assigneeId))) {
     throw new AppError('Assignee must be a member of this project.', 400);
@@ -82,12 +91,18 @@ async function createTask(projectId, data, reporter) {
   return task;
 }
 
+// UPDATE task status (To Do -> In Progress -> Done -> Blocked)
+// Enforces role-based status rules: clients can only set to Blocked
+// Validates user is project member (except admins)
+// Triggers notifications to reporter, assignee, and owner
 async function updateTaskStatus(id, status, updater) {
   const task = await taskRepo.findById(id);
   if (!task) throw new AppError('Task not found.', 404);
+  // Clients have limited permissions: only can block tasks (not progress them)
   if (updater.role === 'client' && status !== 'Blocked') {
     throw new AppError('Client can move tasks only to Blocked.', 403);
   }
+  // Non-admins must be project members
   if (updater.role !== 'admin') {
     const member = await projectRepo.isMember(task.project_id, updater.id);
     if (!member) throw new AppError('Access denied to this project.', 403);

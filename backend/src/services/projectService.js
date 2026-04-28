@@ -1,4 +1,8 @@
 // Purpose: Contains business logic and orchestrates repository calls.
+// Manages project workflows: CRUD, team member management, invite system
+// Handles permission checks (non-admins can only manage their projects)
+// Uses transactions for consistency when updating team members
+// Supports project invites via email with 7-day expiration
 'use strict';
 const { v4: uuidv4 } = require('uuid');
 const AppError   = require('../utils/AppError');
@@ -15,15 +19,18 @@ const STATUS_COLOR_MAP = {
   '#06B6D4': 'cyan', '#14B8A6': 'teal',
 };
 
-// Get all projects for user (admins see all, others see only what they joined)
+// GET all projects for user (role-aware: admins see all, others see only their projects)
+// Enriches each project with full member list and metadata
 async function getProjectsForUser(user) {
   let projects;
   if (user.role === 'admin') {
+    // Admins can see all projects in system
     projects = await projectRepo.findAll();
   } else {
+    // Non-admins only see projects they're members of
     projects = await projectRepo.findByUserId(user.id);
   }
-  // Attach member list to each project
+  // Attach full member list to each project for frontend display
   for (const p of projects) {
     p.members = await projectRepo.getMembers(p.id);
   }
@@ -44,21 +51,25 @@ async function getProjectById(id, user) {
   return project;
 }
 
-// Create new project with transaction (ensure consistency)
+// CREATE new project with transaction (ensure consistency across all operations)
+// Automatically adds owner as first member, then adds selected team members
+// Transaction ensures all-or-nothing semantics: project + members created together
 async function createProject(data, ownerId) {
   const conn = await db.getConnection();
   try {
+    // Start transaction to ensure atomic operations
     await conn.beginTransaction();
     const project = await projectRepo.create({ ...data, owner_id: ownerId }, conn);
     if (!project) throw new AppError('Failed to create project.', 500);
-    // Always add owner as member
+    // Add project creator/owner as default member
     await projectRepo.addMember(project.id, ownerId, conn);
-    // Add selected team members
+    // Add selected team members from registration data
     if (data.teamMemberIds && data.teamMemberIds.length) {
       for (const uid of data.teamMemberIds) {
         await projectRepo.addMember(project.id, uid, conn);
       }
     }
+    // Commit if all operations succeeded
     await conn.commit();
     project.members = await projectRepo.getMembers(project.id);
     return project;
@@ -70,10 +81,12 @@ async function createProject(data, ownerId) {
   }
 }
 
-// Update project details with permission check
+// UPDATE project details and team members (permission controlled)
+// Validates user is admin or project member; syncs employee list with transaction
 async function updateProject(id, data, user) {
   const project = await projectRepo.findById(id);
   if (!project) throw new AppError('Project not found.', 404);
+  // Admins can update any project; others must be members
   if (user.role !== 'admin') {
     const isMember = await projectRepo.isMember(id, user.id);
     if (!isMember) throw new AppError('Access denied to this project.', 403);
@@ -190,6 +203,7 @@ async function acceptInvite(token, user) {
     throw new AppError('Invite link has expired.', 410);
   }
 
+  // Validate invite email matches logged-in user (case-insensitive)
   if (String(invite.email).toLowerCase() !== String(user.email).toLowerCase()) {
     throw new AppError('This invite is for a different email account.', 403);
   }

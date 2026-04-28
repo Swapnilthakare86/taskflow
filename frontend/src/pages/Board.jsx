@@ -1,7 +1,7 @@
 // Purpose: Renders a route-level screen and page-specific behavior.
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Calendar, Clock3, MessageSquare, Paperclip, Pencil, Plus, UserRound, X } from 'lucide-react';
+import { Calendar, Clock3, Pencil, Plus, UserRound, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
 import { useTasks } from '../hooks/useTasks';
@@ -553,7 +553,7 @@ export default function Board() {
                 </div>
               </div>
 
-              {(isEditingTask || !canManage) ? (
+              {isEditingTask ? (
                 <div className="tf-board-edit-form">
                   <div>
                     <label className="tf-field-label">TASK TITLE *</label>
@@ -681,7 +681,6 @@ export default function Board() {
                       </div>
                       <StatusBadge status={selectedTask.status} />
                     </div>
-                    <p className="tf-subtext mb-0">{selectedTask.description || 'No description provided.'}</p>
                   </div>
 
                   <div className="tf-board-detail__chips">
@@ -692,6 +691,11 @@ export default function Board() {
                         {formatDate(selectedTask.due_date)}
                       </span>
                     )}
+                  </div>
+
+                  <div className="tf-label tf-board-detail__section-label">Description</div>
+                  <div className="tf-board-detail__description-box">
+                    {selectedTask.description || 'No description provided.'}
                   </div>
 
                   <div className="tf-label tf-board-detail__section-label">Task Details</div>
@@ -718,43 +722,15 @@ export default function Board() {
                     </div>
 
                     <div className="tf-board-detail__row">
-                      <span className="tf-board-detail__k"><UserRound size={13} /> Reporter</span>
+                      <span className="tf-board-detail__k"><UserRound size={13} /> Task Assigned By</span>
                       <span className="tf-board-detail__v">{selectedTask.reporter_name || 'Unknown'}</span>
                     </div>
 
                     <div className="tf-board-detail__row">
-                      <span className="tf-board-detail__k"><MessageSquare size={13} /> Comments</span>
-                      <span className="tf-board-detail__v">{selectedTask.comment_count || 0}</span>
-                    </div>
-
-                    <div className="tf-board-detail__row">
-                      <span className="tf-board-detail__k"><Paperclip size={13} /> Attachments</span>
-                      <span className="tf-board-detail__v">{selectedTask.attachment_count || 0}</span>
-                    </div>
-
-                    <div className="tf-board-detail__row">
-                      <span className="tf-board-detail__k"><Clock3 size={13} /> Created</span>
+                      <span className="tf-board-detail__k"><Clock3 size={13} /> Created Date</span>
                       <span className="tf-board-detail__v">{formatDate(selectedTask.created_at)}</span>
                     </div>
-
-                    <div className="tf-board-detail__row">
-                      <span className="tf-board-detail__k"><Clock3 size={13} /> Updated</span>
-                      <span className="tf-board-detail__v">{formatDate(selectedTask.updated_at)}</span>
-                    </div>
                   </div>
-
-                  {(selectedTask.tags || []).length > 0 && (
-                    <>
-                      <div className="tf-label tf-board-detail__section-label">Tags</div>
-                      <div className="d-flex gap-1 flex-wrap mt-2">
-                        {selectedTask.tags.map((tg) => (
-                          <span key={tg} className="tf-tag" style={{ background: 'var(--tf-gray-100)', color: 'var(--tf-gray-600)' }}>
-                            {tg}
-                          </span>
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </>
               )}
             </div>
