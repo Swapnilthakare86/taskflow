@@ -11,8 +11,13 @@ const { CLIENT_URL } = require('./config/env');
 const app = express();
 
 app.use(helmet());
+const configuredOrigins = String(CLIENT_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const explicitOrigins = new Set([
-  CLIENT_URL,
+  ...configuredOrigins,
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ]);
