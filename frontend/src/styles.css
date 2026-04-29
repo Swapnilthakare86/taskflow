@@ -628,6 +628,17 @@ body {
   padding: 0 4px;
 }
 
+.tf-topbar__logout-btn {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.tf-topbar__logout-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .tf-modal {
   position: fixed;
   top: 50%;
@@ -1387,6 +1398,10 @@ body {
     margin-left: auto;
     gap: 6px;
     flex: 0 0 auto;
+  }
+
+  .tf-topbar__logout-btn {
+    display: inline-flex !important;
   }
 
   .tf-projects-page-head {

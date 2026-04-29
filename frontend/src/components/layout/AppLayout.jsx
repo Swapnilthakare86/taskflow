@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Bell, Menu, Search, ChevronDown } from 'lucide-react';
+import { Bell, LogOut, Menu, Search, ChevronDown } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
@@ -24,7 +24,7 @@ function Toast({ toast }) {
 
 export default function AppLayout() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
@@ -96,6 +96,11 @@ export default function AppLayout() {
     }
   }
 
+  function handleMobileLogout() {
+    logout();
+    navigate('/login');
+  }
+
   return (
     <div className="tf-app-shell">
       <Sidebar
@@ -163,6 +168,9 @@ export default function AppLayout() {
             <button className="tf-topbar__icon-btn" onClick={() => navigate('/notifications')} aria-label="Notifications">
               <Bell size={16} />
               {unreadCount > 0 && <span className="tf-topbar__notif-pill">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+            </button>
+            <button className="tf-topbar__icon-btn tf-topbar__logout-btn d-lg-none" onClick={handleMobileLogout} aria-label="Sign out">
+              <LogOut size={15} />
             </button>
             <Avatar user={user} size={40} />
           </div>
