@@ -83,7 +83,7 @@ export default function Register() {
   }
 
   return (
-    <div className="tf-card" style={{ padding: 26 }}>
+    <div className="tf-card tf-auth-card">
       <h1 className="tf-heading-lg">Create Account</h1>
       <p className="tf-subtext mt-2">Create a new workspace account.</p>
       {msg.text && <div className="tf-card" style={{ marginTop: 12, padding: 10, borderColor: msg.type === 'success' ? '#86efac' : '#fecaca', background: msg.type === 'success' ? '#ecfdf5' : '#fef2f2', color: msg.type === 'success' ? '#166534' : '#b91c1c' }}>{msg.text}</div>}
@@ -106,7 +106,7 @@ export default function Register() {
         </select>
         {fieldErrors.role && <div className="tf-field-error mb-2">{fieldErrors.role}</div>}
 
-        <div className="row g-2 mb-3">
+        <div className="row g-2 mb-3 tf-auth-password-grid">
           <div className="col-6">
             <label className="tf-label mb-1">PASSWORD</label>
             <div className="tf-input-wrap">

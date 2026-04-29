@@ -3,7 +3,8 @@ const db = require('../config/db');
 
 async function findByUserId(userId) {
   const [rows] = await db.execute(
-    `SELECT id, user_id, type, title, description, project_code, is_read, created_at
+    `SELECT id, user_id, type, title, description, project_code, is_read, created_at,
+            UNIX_TIMESTAMP(created_at) * 1000 AS created_at_ms
      FROM notifications
      WHERE user_id = ?
      ORDER BY created_at DESC, id DESC`,

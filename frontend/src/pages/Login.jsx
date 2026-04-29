@@ -79,7 +79,7 @@ export default function Login() {
   }
 
   return (
-    <div className="tf-card" style={{ padding: 26 }}>
+    <div className="tf-card tf-auth-card">
       <h1 className="tf-heading-lg">Welcome Back</h1>
       <p className="tf-subtext mt-2">Sign in with your workspace email and password.</p>
 

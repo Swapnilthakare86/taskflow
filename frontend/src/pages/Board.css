@@ -84,10 +84,12 @@
 
 @media (max-width: 767px) {
   .tf-board-scroll {
-    grid-template-columns: repeat(6, minmax(240px, 82vw));
-    gap: 10px;
-    margin-inline: -8px;
-    padding-inline: 8px;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow-x: hidden;
+    scroll-snap-type: none;
   }
 
   .tf-board-col__name {
@@ -116,7 +118,7 @@
 
 @media (max-width: 420px) {
   .tf-board-scroll {
-    grid-template-columns: repeat(6, minmax(220px, 86vw));
+    grid-template-columns: 1fr;
   }
 
   .tf-board-task-modal {

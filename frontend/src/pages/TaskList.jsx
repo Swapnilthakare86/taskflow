@@ -1,7 +1,7 @@
 // Purpose: Renders a route-level screen and page-specific behavior.
 import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Calendar, MessageSquare } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useAuth }    from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
 import { useTasks }   from '../hooks/useTasks';
@@ -46,12 +46,12 @@ export default function TaskList() {
 
   return (
     <div className="tf-fade-up">
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="tf-task-list-head d-flex justify-content-between align-items-center mb-3">
         <div>
           <h1 className="tf-heading-xl">{canReadAll ? 'Task List' : 'Team Tasks'}</h1>
-          <p className="tf-subtext mt-1">{filtered.length} tasks · {activeProject.name}</p>
+          <p className="tf-subtext tf-task-list-count mt-1">{filtered.length} tasks · {activeProject.name}</p>
         </div>
-        <div className="d-flex gap-1 p-1 rounded" style={{ background:'var(--tf-gray-100)' }}>
+        <div className="tf-task-list-tabs d-flex gap-1 p-1 rounded" style={{ background:'var(--tf-gray-100)' }}>
           {tabs.map(s => (
             <button key={s} onClick={() => setFilter(s)}
               className={`tf-btn tf-btn-xs${filter===s ? '' : ''}`}
@@ -82,41 +82,43 @@ export default function TaskList() {
       )}
 
       {loading ? <Spinner /> : (
-        <div className="tf-card overflow-hidden">
+        <div className="tf-card tf-task-list-card overflow-hidden">
           <div className="table-responsive">
             <table className="table table-hover mb-0" style={{ fontSize:13 }}>
               <thead style={{ background:'var(--tf-gray-50)' }}>
                 <tr>
-                  {['ID','Title','Assignee','Status','Priority','Due',''].map(h=>(
-                    <th key={h} style={{ padding:'11px 14px', fontSize:10, color:'var(--tf-gray-400)', fontWeight:700, letterSpacing:.8, border:0, whiteSpace:'nowrap' }}>{h}</th>
+                  {[
+                    ['ID', 'tf-task-col-id'],
+                    ['Title', 'tf-task-col-title'],
+                    ['Assignee', 'tf-task-col-assignee'],
+                    ['Status', 'tf-task-col-status'],
+                    ['Priority', 'tf-task-col-priority'],
+                    ['Due', 'tf-task-col-due'],
+                  ].map(([h, className])=>(
+                    <th key={className} className={className} style={{ padding:'11px 14px', fontSize:10, color:'var(--tf-gray-400)', fontWeight:700, letterSpacing:.8, border:0, whiteSpace:'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {!filtered.length && (
-                  <tr><td colSpan={7} style={{ textAlign:'center', color:'var(--tf-gray-400)', padding:32 }}>No tasks found.</td></tr>
+                  <tr><td colSpan={6} style={{ textAlign:'center', color:'var(--tf-gray-400)', padding:32 }}>No tasks found.</td></tr>
                 )}
                 {filtered.map(t => {
                   const aUser = { id:t.assignee_id, name:t.assignee_name, initials:t.assignee_initials, avatar_color:t.assignee_color };
                   return (
                     <tr key={t.id} style={{ cursor:'pointer' }}>
-                      <td style={{ padding:'13px 14px', fontFamily:'var(--tf-font-mono)', fontSize:10, color:'var(--tf-gray-400)', border:0 }}>{t.id}</td>
-                      <td style={{ padding:'13px 14px', border:0 }}>
+                      <td className="tf-task-col-id" style={{ padding:'13px 14px', fontFamily:'var(--tf-font-mono)', fontSize:10, color:'var(--tf-gray-400)', border:0 }}>{t.id}</td>
+                      <td className="tf-task-col-title" style={{ padding:'13px 14px', border:0 }}>
                         <div style={{ fontWeight:600, color:'var(--tf-gray-900)', marginBottom:4 }}>{t.title}</div>
                         <div className="d-flex gap-1">{(t.tags||[]).slice(0,2).map(tg=><span key={tg} style={{fontSize:9,padding:'1px 6px',borderRadius:4,background:'var(--tf-gray-100)',color:'var(--tf-gray-500)',fontWeight:600}}>{tg}</span>)}</div>
                       </td>
-                      <td style={{ padding:'13px 14px', border:0 }}>
+                      <td className="tf-task-col-assignee" style={{ padding:'13px 14px', border:0 }}>
                         <div className="d-flex align-items-center gap-2"><Avatar user={aUser} size={24} /><span style={{ color:'var(--tf-gray-600)' }}>{aUser.name?.split(' ')[0]}</span></div>
                       </td>
-                      <td style={{ padding:'13px 14px', border:0 }}><StatusBadge status={t.status} /></td>
-                      <td style={{ padding:'13px 14px', border:0 }}><PriBadge priority={t.priority} /></td>
-                      <td style={{ padding:'13px 14px', color:'var(--tf-gray-500)', border:0 }}>
+                      <td className="tf-task-col-status" style={{ padding:'13px 14px', border:0 }}><StatusBadge status={t.status} /></td>
+                      <td className="tf-task-col-priority" style={{ padding:'13px 14px', border:0 }}><PriBadge priority={t.priority} /></td>
+                      <td className="tf-task-col-due" style={{ padding:'13px 14px', color:'var(--tf-gray-500)', border:0 }}>
                         <div className="d-flex align-items-center gap-1"><Calendar size={11} />{t.due_date}</div>
-                      </td>
-                      <td style={{ padding:'13px 14px', border:0 }}>
-                        <div className="d-flex align-items-center gap-2" style={{ color:'var(--tf-gray-400)', fontSize:11 }}>
-                          <span className="d-flex align-items-center gap-1"><MessageSquare size={11} />{t.comment_count}</span>
-                        </div>
                       </td>
                     </tr>
                   );
@@ -129,6 +131,7 @@ export default function TaskList() {
     </div>
   );
 }
+
 
 
 

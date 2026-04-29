@@ -46,9 +46,17 @@
 .tf-sidebar--collapsed { width: 80px; }
 
 @media (max-width: 991px) {
-  .tf-sidebar { position: fixed; left: -280px; width: 260px; z-index: 1000; transition: left .2s ease; }
+  .tf-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    left: -280px;
+    width: 260px;
+    z-index: 1300;
+    transition: left .2s ease;
+  }
   .tf-sidebar--open { left: 0; }
   .tf-sidebar__mobile-close { display: inline-flex; align-items: center; justify-content: center; }
+  .tf-sidebar__collapse-btn { display: none; }
 }
 
 /* Responsive sidebar refinements */
@@ -66,7 +74,7 @@
   .tf-sidebar--collapsed .tf-sidebar__user-name,
   .tf-sidebar--collapsed .tf-sidebar__user .min-w-0,
   .tf-sidebar--collapsed .tf-sidebar__section-label {
-    display: initial;
+    display: block;
   }
 }
 
@@ -75,5 +83,9 @@
     width: 82vw;
     left: -86vw;
     padding: 8px;
+  }
+
+  .tf-sidebar--open {
+    left: 0;
   }
 }

@@ -105,6 +105,7 @@ export default function AppLayout() {
         onToggleCollapse={() => setCollapsed((v) => !v)}
         onClose={() => setMobileOpen(false)}
       />
+      {mobileOpen && <button className="tf-sidebar-backdrop d-lg-none" aria-label="Close menu" onClick={() => setMobileOpen(false)} />}
 
       <div className="tf-main">
         <header className="tf-topbar">

@@ -12,6 +12,13 @@ const { sendProjectInvite } = require('./mailService');
 const db          = require('../config/db');
 const env         = require('../config/env');
 
+function getClientAppUrl() {
+  return String(env.CLIENT_URL || '')
+    .split(',')
+    .map((url) => url.trim().replace(/\/+$/, ''))
+    .filter(Boolean)[0] || '';
+}
+
 // Color name mapping for project colors
 const STATUS_COLOR_MAP = {
   '#3B82F6': 'blue', '#8B5CF6': 'purple', '#10B981': 'green',
@@ -165,7 +172,7 @@ async function sendInvite(projectId, invitedByUser, email) {
 
   const token      = uuidv4();
   const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-  const inviteLink = `${env.CLIENT_URL}/invite/accept?token=${token}`;
+  const inviteLink = `${getClientAppUrl()}/invite/accept?token=${token}`;
 
   await projectRepo.saveInvite({ project_id: projectId, invited_by: invitedByUser.id, email: normalizedEmail, token, expires_at });
   const mailResult = await sendProjectInvite({

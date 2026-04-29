@@ -6,7 +6,9 @@ import { useNotifications } from '../hooks/useNotifications';
 const FILTER_UNREAD = 'unread';
 const FILTER_READ = 'read';
 
-function parseCreatedAt(value) {
+function parseCreatedAt(value, epochMs) {
+  const exact = Number(epochMs);
+  if (Number.isFinite(exact) && exact > 0) return exact;
   if (!value) return 0;
   const raw = String(value).trim();
   const normalized =
@@ -17,35 +19,24 @@ function parseCreatedAt(value) {
   return Number.isFinite(ts) ? ts : 0;
 }
 
-function timeAgo(dateStr) {
+function timeAgo(notification) {
+  const dateStr = notification?.created_at;
   if (!dateStr) return '-';
 
-  const then = parseCreatedAt(dateStr);
+  const then = parseCreatedAt(dateStr, notification?.created_at_ms);
   if (!then) return '-';
 
   const diff = Math.max(0, Math.floor((Date.now() - then) / 1000));
   if (diff < 60) return 'Just now';
 
   const d = new Date(then);
-  const now = new Date();
-  const sameDay =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate();
-
-  if (sameDay) {
-    return d.toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
   return d.toLocaleString(undefined, {
     month: 'short',
     day: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: true,
   });
 }
 
@@ -71,7 +62,7 @@ export default function Notifications() {
   const markAllRead = outlet.markAllRead ?? local.markAllRead;
 
   const sorted = useMemo(
-    () => items.slice().sort((a, b) => parseCreatedAt(b.created_at) - parseCreatedAt(a.created_at)),
+    () => items.slice().sort((a, b) => parseCreatedAt(b.created_at, b.created_at_ms) - parseCreatedAt(a.created_at, a.created_at_ms)),
     [items]
   );
 
@@ -125,7 +116,7 @@ export default function Notifications() {
                     <div className="tf-subtext">{n.description}</div>
                   </div>
                 </div>
-                <div className="tf-subtext">{timeAgo(n.created_at)}</div>
+                <div className="tf-subtext">{timeAgo(n)}</div>
               </div>
             </button>
           );

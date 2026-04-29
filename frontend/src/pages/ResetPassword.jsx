@@ -61,7 +61,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="tf-card" style={{ padding: 26 }}>
+    <div className="tf-card tf-auth-card">
       <h1 className="tf-heading-lg">Reset Password</h1>
       <p className="tf-subtext mt-2">Set your new password.</p>
       {msg.text && <div className="tf-card" style={{ marginTop: 12, padding: 10, borderColor: msg.type === 'success' ? '#86efac' : '#fecaca', background: msg.type === 'success' ? '#ecfdf5' : '#fef2f2', color: msg.type === 'success' ? '#166534' : '#b91c1c' }}>{msg.text}</div>}

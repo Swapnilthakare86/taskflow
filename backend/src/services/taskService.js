@@ -63,13 +63,6 @@ async function createTask(projectId, data, reporter) {
 
   const project = await projectRepo.findById(projectId);
 
-  await createNotificationForUsers([Number(reporter.id)], {
-    type: 'status',
-    title: `Task "${task.title}" created`,
-    description: `Created by ${reporter.name}`,
-    project_code: project?.code || '',
-  });
-
   if (Number(data.assigneeId) !== Number(reporter.id)) {
     await createNotificationForUsers([Number(data.assigneeId)], {
       type: 'assigned',
@@ -112,30 +105,16 @@ async function updateTaskStatus(id, status, updater) {
   const project = await projectRepo.findById(task.project_id);
   const notifyType = status === 'Done' ? 'done' : 'status';
 
-  await createNotificationForUsers([Number(updater.id)], {
+  const recipientIds = [task.assignee_id, task.reporter_id, project?.owner_id]
+    .map(Number)
+    .filter((uid) => uid && uid !== Number(updater.id));
+
+  await createNotificationForUsers(recipientIds, {
     type: notifyType,
-    title: `Task "${task.title}" updated to ${status}`,
-    description: `Updated by ${updater.name}`,
+    title: `Task #${task.id} moved to ${status}`,
+    description: `${task.title} - moved by ${updater.name}`,
     project_code: project?.code || '',
   });
-
-  if (task.assignee_id && Number(task.assignee_id) !== Number(updater.id)) {
-    await createNotificationForUsers([Number(task.assignee_id)], {
-      type: notifyType,
-      title: `Task #${task.id} moved to ${status}`,
-      description: `${task.title} - moved by ${updater.name}`,
-      project_code: project?.code || '',
-    });
-  }
-
-  if (project?.owner_id && Number(project.owner_id) !== Number(updater.id)) {
-    await createNotificationForUsers([Number(project.owner_id)], {
-      type: notifyType,
-      title: `Task "${task.title}" updated to ${status}`,
-      description: `Updated by ${updater.name}`,
-      project_code: project?.code || '',
-    });
-  }
 
   return updated;
 }
