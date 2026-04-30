@@ -1,4 +1,4 @@
-// Purpose: Executes database queries and returns data models.
+//  Executes database queries and returns data models.
 'use strict';
 const db = require('../config/db');
 
