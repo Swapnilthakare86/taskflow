@@ -26,7 +26,11 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd ${{ secrets.EC2_APP_DIR }}
+            APP_DIR="${{ secrets.EC2_APP_DIR }}"
+            if [ -z "$APP_DIR" ]; then
+              APP_DIR="/var/www/taskflow"
+            fi
+            cd "$APP_DIR"
             git pull origin main
             docker compose up -d --build backend
             docker image prune -f
