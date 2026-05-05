@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react';
 import { Bell, LogOut, Menu, Search, ChevronDown } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useProject } from '../../context/ProjectContext';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -24,6 +24,8 @@ function Toast({ toast }) {
 
 export default function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -44,6 +46,14 @@ export default function AppLayout() {
     markAllRead,
     fetchNotifications,
   } = useNotifications();
+  const searchEnabledRoutes = new Set(['/projects', '/list', '/team']);
+  const showTopbarSearch = searchEnabledRoutes.has(location.pathname);
+  const topbarSearch = searchParams.get('q') || '';
+  const searchPlaceholder = location.pathname === '/projects'
+    ? 'Search projects...'
+    : location.pathname === '/team'
+      ? 'Search team members...'
+      : 'Search tasks...';
 
   useEffect(() => {
     function closeProjectMenu(event) {
@@ -99,6 +109,16 @@ export default function AppLayout() {
   function handleMobileLogout() {
     logout();
     navigate('/login');
+  }
+
+  function updateTopbarSearch(value) {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      nextParams.set('q', value);
+    } else {
+      nextParams.delete('q');
+    }
+    setSearchParams(nextParams, { replace: true });
   }
 
   return (
@@ -159,10 +179,17 @@ export default function AppLayout() {
             )}
           </div>
 
-          <div className="tf-topbar__search">
-            <Search size={14} color="#94a3b8" />
-            <span className="tf-subtext">Search tasks, members...</span>
-          </div>
+          {showTopbarSearch && (
+            <label className="tf-topbar__search">
+              <Search size={14} color="#94a3b8" />
+              <input
+                value={topbarSearch}
+                onChange={(event) => updateTopbarSearch(event.target.value)}
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
+              />
+            </label>
+          )}
 
           <div className="tf-topbar__right">
             <button className="tf-topbar__icon-btn" onClick={() => navigate('/notifications')} aria-label="Notifications">

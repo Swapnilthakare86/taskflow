@@ -591,6 +591,27 @@ body {
   padding: 0 12px;
 }
 
+.tf-topbar__search input {
+  background: transparent;
+  border: 0;
+  color: var(--tf-gray-700);
+  flex: 1;
+  font: inherit;
+  font-size: 13px;
+  min-width: 0;
+  outline: 0;
+}
+
+.tf-topbar__search input::placeholder {
+  color: var(--tf-gray-400);
+}
+
+.tf-topbar__search:focus-within {
+  background: #fff;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .1);
+}
+
 .tf-topbar__right {
   margin-left: auto;
   display: inline-flex;

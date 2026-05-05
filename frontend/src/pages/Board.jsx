@@ -1,7 +1,7 @@
 // Purpose: Renders a route-level screen and page-specific behavior.
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Calendar, Clock3, Pencil, Plus, Search, UserRound, X } from 'lucide-react';
+import { Calendar, Clock3, Pencil, Plus, UserRound, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
 import { useTasks } from '../hooks/useTasks';
@@ -55,9 +55,6 @@ export default function Board() {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [taskCreating, setTaskCreating] = useState(false);
   
-  // Board search state
-  const [searchQuery, setSearchQuery] = useState('');
-  
   // Task form data
   const [taskForm, setTaskForm] = useState({
     title: '',
@@ -88,18 +85,9 @@ export default function Board() {
   const roleScopedTasks = canViewTeamBoard ? tasks : tasks.filter((t) => t.assignee_id === user?.id);
   
   // Filter by selected team member if any
-  const memberFilteredTasks = selectedMemberId
+  const visibleTasks = selectedMemberId
     ? roleScopedTasks.filter((t) => Number(t.assignee_id) === Number(selectedMemberId))
     : roleScopedTasks;
-  
-  // Filter by search query - search in title and description
-  const searchLower = searchQuery.toLowerCase().trim();
-  const visibleTasks = searchQuery
-    ? memberFilteredTasks.filter((t) =>
-        String(t.title).toLowerCase().includes(searchLower) ||
-        String(t.description || '').toLowerCase().includes(searchLower)
-      )
-    : memberFilteredTasks;
 
   // Real-time progress update when tasks change
   useEffect(() => {
@@ -399,58 +387,6 @@ export default function Board() {
         {canManage && (
           <button className="tf-btn tf-btn-primary" onClick={() => openCreateTask('To Do')}>
             <Plus size={14} /> New Task
-          </button>
-        )}
-      </div>
-
-      {/* Search Bar */}
-      <div className="tf-search-bar mb-3" style={{ maxWidth: '400px' }}>
-        <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-        <input
-          type="text"
-          placeholder="Search by task title or description..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="tf-input-search"
-          style={{
-            paddingLeft: '40px',
-            width: '100%',
-            padding: '8px 12px 8px 40px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            fontSize: '14px',
-            transition: 'all 0.2s',
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = '#3b82f6';
-            e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = '#e2e8f0';
-            e.target.style.boxShadow = 'none';
-          }}
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => setSearchQuery('')}
-            style={{
-              position: 'absolute',
-              right: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#94a3b8',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            aria-label="Clear search"
-          >
-            <X size={16} />
           </button>
         )}
       </div>
@@ -880,4 +816,3 @@ export default function Board() {
     </div>
   );
 }
-

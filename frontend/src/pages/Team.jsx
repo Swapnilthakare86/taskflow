@@ -3,7 +3,7 @@ import { useAuth }        from '../context/AuthContext';
 import { useProject }     from '../context/ProjectContext';
 import { useTasks }       from '../hooks/useTasks';
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import ProjectHeader      from '../components/cards/ProjectHeader';
 import TeamMemberCard     from '../components/cards/TeamMemberCard';
 import Spinner            from '../components/common/Spinner';
@@ -12,6 +12,7 @@ import { Users }          from 'lucide-react';
 
 export default function Team() {
   const { user, canReadAll }  = useAuth();
+  const [searchParams]        = useSearchParams();
   const { activeProject }     = useProject();
   const { openInvite }        = useOutletContext();
   const { tasks, loading }    = useTasks(activeProject?.id);
@@ -36,11 +37,21 @@ export default function Team() {
   const baseVisibleMembers    = hideSelfInTeam
     ? employeeMembers.filter((m) => Number(m.id) !== Number(user?.id))
     : employeeMembers;
+
+  const searchQuery           = (searchParams.get('q') || '').trim().toLowerCase();
+  const searchFilteredMembers = searchQuery
+    ? baseVisibleMembers.filter((member) => [
+        member.name,
+        member.email,
+        member.department,
+        member.role,
+      ].some((value) => String(value || '').toLowerCase().includes(searchQuery)))
+    : baseVisibleMembers;
     
   // Apply member filter if one is selected
   const visibleMembers        = selectedMemberId
-    ? baseVisibleMembers.filter((m) => Number(m.id) === Number(selectedMemberId))
-    : baseVisibleMembers;
+    ? searchFilteredMembers.filter((m) => Number(m.id) === Number(selectedMemberId))
+    : searchFilteredMembers;
     
   // Get currently selected member object
   const selectedMember        = selectedMemberId
@@ -102,4 +113,3 @@ export default function Team() {
     </div>
   );
 }
-

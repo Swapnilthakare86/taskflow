@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { Plus, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
@@ -22,6 +22,7 @@ function defaultForm() {
 
 export default function Projects() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, canManage } = useAuth();
   const { projects, activeId, setActiveId, fetchProjects } = useProject();
   const { showToast, openInvite } = useOutletContext();
@@ -40,10 +41,26 @@ export default function Projects() {
     return [...PROJECT_STATUSES, form.status].filter(Boolean);
   }, [form.status]);
 
+  const searchQuery = (searchParams.get('q') || '').trim().toLowerCase();
+
   const visible = useMemo(() => {
-    if (user?.role !== 'client') return projects;
-    return projects.filter((p) => (p.members || []).some((m) => Number(m.id) === Number(user?.id)));
-  }, [projects, user]);
+    const roleProjects = user?.role === 'client'
+      ? projects.filter((p) => (p.members || []).some((m) => Number(m.id) === Number(user?.id)))
+      : projects;
+
+    if (!searchQuery) return roleProjects;
+
+    return roleProjects.filter((project) => {
+      const memberNames = (project.members || []).map((member) => member.name).join(' ');
+      return [
+        project.name,
+        project.code,
+        project.description,
+        project.status,
+        memberNames,
+      ].some((value) => String(value || '').toLowerCase().includes(searchQuery));
+    });
+  }, [projects, searchQuery, user]);
 
   useEffect(() => {
     if (!canManage) return;
