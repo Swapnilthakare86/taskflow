@@ -1,7 +1,7 @@
 // Purpose: Renders a route-level screen and page-specific behavior.
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Calendar, Clock3, Pencil, Plus, UserRound, X } from 'lucide-react';
+import { Calendar, Clock3, Pencil, Plus, Search, UserRound, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
 import { useTasks } from '../hooks/useTasks';
@@ -24,11 +24,24 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function getTodayInputValue() {
+  const today = new Date();
+  const offset = today.getTimezoneOffset() * 60000;
+  return new Date(today.getTime() - offset).toISOString().slice(0, 10);
+}
+
 export default function Board() {
   const { user, canManage, canReadAll, isClient } = useAuth();
-  const { activeProject } = useProject();
+  const { activeProject, updateProject } = useProject();
   const { tasks, loading, updateTaskStatus, setTasks } = useTasks(activeProject?.id);
   const { showToast, openInvite, refreshNotifications } = useOutletContext();
+
+  // Calculate progress percentage from tasks
+  function calculateProgress(taskList) {
+    if (!taskList.length) return 0;
+    const doneCount = taskList.filter(t => t.status === 'Done').length;
+    return Math.round((doneCount / taskList.length) * 100);
+  }
 
   // Drag and drop state for kanban board
   const [dragId, setDragId] = useState(null);
@@ -41,6 +54,9 @@ export default function Board() {
   const [taskSaving, setTaskSaving] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [taskCreating, setTaskCreating] = useState(false);
+  
+  // Board search state
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Task form data
   const [taskForm, setTaskForm] = useState({
@@ -72,9 +88,28 @@ export default function Board() {
   const roleScopedTasks = canViewTeamBoard ? tasks : tasks.filter((t) => t.assignee_id === user?.id);
   
   // Filter by selected team member if any
-  const visibleTasks = selectedMemberId
+  const memberFilteredTasks = selectedMemberId
     ? roleScopedTasks.filter((t) => Number(t.assignee_id) === Number(selectedMemberId))
     : roleScopedTasks;
+  
+  // Filter by search query - search in title and description
+  const searchLower = searchQuery.toLowerCase().trim();
+  const visibleTasks = searchQuery
+    ? memberFilteredTasks.filter((t) =>
+        String(t.title).toLowerCase().includes(searchLower) ||
+        String(t.description || '').toLowerCase().includes(searchLower)
+      )
+    : memberFilteredTasks;
+
+  // Real-time progress update when tasks change
+  useEffect(() => {
+    if (!tasks.length || !activeProject) return;
+    const newProgress = calculateProgress(tasks);
+    // Only update if progress actually changed
+    if (activeProject.progress !== newProgress) {
+      updateProject(activeProject.id, { progress: newProgress });
+    }
+  }, [tasks, activeProject, updateProject]);
 
   useEffect(() => {
     if (!selectedTaskId) return;
@@ -85,6 +120,7 @@ export default function Board() {
   }, [visibleTasks, selectedTaskId]);
 
   const selectedTask = visibleTasks.find((t) => t.id === selectedTaskId) || null;
+  const todayInputValue = getTodayInputValue();
   const projectMembers = activeProject?.members || [];
   const assignableMembers = projectMembers.filter((m) => {
     const role = String(m.role || '').toLowerCase();
@@ -119,6 +155,9 @@ export default function Board() {
     const errors = {};
     if (!values.title?.trim()) errors.title = 'Task title is required.';
     if (!values.assigneeId) errors.assigneeId = 'Assignee is required.';
+    if (values.dueDate && values.dueDate < todayInputValue) {
+      errors.dueDate = 'Due date must be today or a future date.';
+    }
     return errors;
   }
 
@@ -178,6 +217,18 @@ export default function Board() {
       try {
         await taskService.updateStatus(task.id, col);
         updateTaskStatus(task.id, col);
+        
+        // Update tasks list and recalculate progress in real-time
+        setTasks(prevTasks => {
+          const updatedTasks = prevTasks.map(t => 
+            t.id === task.id ? { ...t, status: col } : t
+          );
+          // Calculate new progress and update activeProject immediately
+          const newProgress = calculateProgress(updatedTasks);
+          updateProject(activeProject.id, { progress: newProgress });
+          return updatedTasks;
+        });
+        
         await refreshNotifications?.();
         showToast?.(`Task no ${task.id} -> ${col}`);
       } catch {
@@ -186,6 +237,13 @@ export default function Board() {
     }
     setDragId(null);
     setOverCol(null);
+  }
+
+  function allowDrop(e, col) {
+    if (isClient && col !== 'Blocked') return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setOverCol(col);
   }
 
   function startEditTask() {
@@ -227,7 +285,15 @@ export default function Board() {
       };
       const { data: res } = await taskService.update(selectedTask.id, payload);
       const updated = res?.data || {};
-      setTasks((prev) => prev.map((t) => (t.id === selectedTask.id ? { ...t, ...updated } : t)));
+      setTasks((prev) => {
+        const updatedTasks = prev.map((t) => (t.id === selectedTask.id ? { ...t, ...updated } : t));
+        // Recalculate progress if status changed
+        if (updated.status && updated.status !== selectedTask.status) {
+          const newProgress = calculateProgress(updatedTasks);
+          updateProject(activeProject.id, { progress: newProgress });
+        }
+        return updatedTasks;
+      });
       setIsEditingTask(false);
       setTaskErrors({});
       setTaskFormError('');
@@ -294,7 +360,15 @@ export default function Board() {
       };
       const { data: res } = await taskService.create(activeProject.id, payload);
       const createdTask = res?.data;
-      if (createdTask) setTasks((prev) => [createdTask, ...prev]);
+      if (createdTask) {
+        setTasks((prev) => {
+          const updated = [createdTask, ...prev];
+          // Recalculate progress with new task
+          const newProgress = calculateProgress(updated);
+          updateProject(activeProject.id, { progress: newProgress });
+          return updated;
+        });
+      }
       setIsCreateTaskOpen(false);
       setNewTaskErrors({});
       setNewTaskFormError('');
@@ -329,6 +403,58 @@ export default function Board() {
         )}
       </div>
 
+      {/* Search Bar */}
+      <div className="tf-search-bar mb-3" style={{ maxWidth: '400px' }}>
+        <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+        <input
+          type="text"
+          placeholder="Search by task title or description..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="tf-input-search"
+          style={{
+            paddingLeft: '40px',
+            width: '100%',
+            padding: '8px 12px 8px 40px',
+            border: '1px solid #e2e8f0',
+            borderRadius: '6px',
+            fontSize: '14px',
+            transition: 'all 0.2s',
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = '#3b82f6';
+            e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = '#e2e8f0';
+            e.target.style.boxShadow = 'none';
+          }}
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            style={{
+              position: 'absolute',
+              right: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#94a3b8',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-label="Clear search"
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+
       <ProjectHeader
         project={activeProject}
         user={user}
@@ -358,11 +484,7 @@ export default function Board() {
             <div
               key={col}
               className="tf-board-col"
-              onDragOver={(e) => {
-                if (isClient && col !== 'Blocked') return;
-                e.preventDefault();
-                setOverCol(col);
-              }}
+              onDragOver={(e) => allowDrop(e, col)}
               onDragLeave={(e) => {
                 if (!e.currentTarget.contains(e.relatedTarget)) setOverCol(null);
               }}
@@ -393,6 +515,12 @@ export default function Board() {
               <div
                 className={`tf-board-col__zone${isOver ? ' tf-board-col__zone--over' : ''}`}
                 style={isOver ? { borderColor: colColor, background: `${colColor}06` } : {}}
+                onDragOver={(e) => allowDrop(e, col)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDrop(col);
+                }}
               >
                 {colTasks.map((task) => (
                   <TaskCard
@@ -402,7 +530,17 @@ export default function Board() {
                     currentUserId={user?.id}
                     draggable={canDragTask(task)}
                     isDragging={dragId === task.id}
-                    onDragStart={() => setDragId(task.id)}
+                    onDragOver={(e) => allowDrop(e, col)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDrop(col);
+                    }}
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/plain', String(task.id));
+                      setDragId(task.id);
+                    }}
                     onDragEnd={() => {
                       setDragId(null);
                       setOverCol(null);
@@ -474,6 +612,7 @@ export default function Board() {
                   <label className="tf-label mb-1">DUE DATE</label>
                   <input
                     type="date"
+                    min={todayInputValue}
                     className={`tf-input${newTaskErrors.dueDate ? ' tf-input--error' : ''}`}
                     value={newTaskForm.dueDate}
                     onChange={(e) => updateNewTaskField('dueDate', e.target.value)}
@@ -599,6 +738,7 @@ export default function Board() {
                       <label className="tf-field-label">DUE DATE</label>
                       <input
                         type="date"
+                        min={todayInputValue}
                         className={`tf-input${taskErrors.dueDate ? ' tf-input--error' : ''}`}
                         value={taskForm.dueDate}
                         onChange={(e) => updateTaskField('dueDate', e.target.value)}
@@ -740,5 +880,4 @@ export default function Board() {
     </div>
   );
 }
-
 

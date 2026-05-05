@@ -1,7 +1,7 @@
 // Purpose: Renders a route-level screen and page-specific behavior.
 import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
+import { Calendar, Search, X } from 'lucide-react';
 import { useAuth }    from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
 import { useTasks }   from '../hooks/useTasks';
@@ -20,6 +20,7 @@ export default function TaskList() {
   // Filtering state
   const [filter, setFilter]     = useState('All');
   const [selectedMemberId, setSelectedMemberId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Available status tabs
   const tabs = ['All','To Do','In Progress','In Review','Blocked','Done'];
@@ -28,9 +29,18 @@ export default function TaskList() {
   const statusFiltered = filter === 'All' ? tasks : tasks.filter(t => t.status === filter);
   
   // Filter by team member if selected
-  const filtered = selectedMemberId
+  const memberFiltered = selectedMemberId
     ? statusFiltered.filter((t) => Number(t.assignee_id) === Number(selectedMemberId))
     : statusFiltered;
+  
+  // Filter by search query - search in title and description
+  const searchLower = searchQuery.toLowerCase().trim();
+  const filtered = searchQuery
+    ? memberFiltered.filter((t) =>
+        String(t.title).toLowerCase().includes(searchLower) ||
+        String(t.description || '').toLowerCase().includes(searchLower)
+      )
+    : memberFiltered;
     
   // Get full member object for selected member
   const selectedMember = selectedMemberId

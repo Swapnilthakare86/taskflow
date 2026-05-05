@@ -1165,6 +1165,285 @@ body {
   text-align: center;
 }
 
+.tf-burndown-modern {
+  background: #ffffff;
+  border: 0;
+  border-radius: 16px;
+  box-shadow: none;
+  overflow: hidden;
+  padding: 0;
+}
+
+.tf-dashboard__burndown-card {
+  overflow: hidden;
+  width: 100%;
+}
+
+.tf-dashboard__burndown-card .tf-burndown-modern {
+  max-width: none;
+}
+
+.tf-burndown-modern__topbar {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.tf-burndown-modern__topbar h3 {
+  color: var(--tf-gray-900);
+  font-size: 18px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.tf-burndown-modern__topbar p {
+  color: var(--tf-gray-500);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.tf-burndown-modern__actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.tf-burndown-modern__actions span,
+.tf-burndown-modern__actions button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+  color: var(--tf-gray-700);
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.tf-burndown-modern__actions button {
+  justify-content: center;
+  padding: 0;
+  width: 34px;
+}
+
+.tf-burndown-modern__summary {
+  background: #ffffff;
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.tf-burndown-modern__summary strong,
+.tf-burndown-modern__summary small,
+.tf-burndown-modern__eyebrow {
+  display: block;
+}
+
+.tf-burndown-modern__eyebrow {
+  align-items: center;
+  color: #8b5cf6;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  gap: 5px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.tf-burndown-modern__summary strong {
+  color: var(--tf-gray-900);
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-top: 4px;
+}
+
+.tf-burndown-modern__summary small {
+  color: var(--tf-gray-500);
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.tf-burndown-modern__pill {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  height: 34px;
+  padding: 0 10px;
+}
+
+.tf-burndown-modern__pill--good {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.tf-burndown-modern__pill--risk {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.tf-burndown-modern__metrics {
+  display: grid;
+  gap: 8px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tf-burndown-modern__metric {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  display: flex;
+  gap: 9px;
+  min-width: 0;
+  padding: 8px;
+}
+
+.tf-burndown-modern__metric > span {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.tf-burndown-modern__metric strong {
+  color: var(--tf-gray-900);
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  margin: 0 0 3px;
+}
+
+.tf-burndown-modern__metric small {
+  color: var(--tf-gray-500);
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.tf-burndown-modern__metric--purple > span {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.tf-burndown-modern__metric--amber > span {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.tf-burndown-modern__metric--blue > span {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.tf-burndown-modern__metric--green > span {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.tf-burndown-modern__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 4px;
+}
+
+.tf-burndown-modern__legend span {
+  align-items: center;
+  color: var(--tf-gray-600);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.tf-burndown-modern__dot {
+  border-radius: 999px;
+  display: inline-block;
+  height: 4px;
+  width: 22px;
+}
+
+.tf-burndown-modern__dot--planned {
+  background: repeating-linear-gradient(90deg, #f97316 0 8px, transparent 8px 13px);
+  height: 3px;
+  width: 30px;
+}
+
+.tf-burndown-modern__dot--actual {
+  background: #4f46e5;
+  height: 3px;
+  width: 30px;
+}
+
+.tf-burndown-modern__insight {
+  align-items: center;
+  border-radius: 14px;
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 8px 10px;
+}
+
+.tf-burndown-modern__insight span {
+  align-items: center;
+  border-radius: 10px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.tf-burndown-modern__insight strong {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.tf-burndown-modern__insight p {
+  color: var(--tf-gray-600);
+  font-size: 12px;
+  margin: 0;
+}
+
+.tf-burndown-modern__insight--good {
+  background: #ecfdf5;
+  color: #16a34a;
+}
+
+.tf-burndown-modern__insight--good span {
+  background: #dcfce7;
+}
+
+.tf-burndown-modern__insight--risk {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.tf-burndown-modern__insight--risk span {
+  background: #ede9fe;
+}
 .tf-dashboard__workload {
   display: grid;
   gap: 12px;
@@ -1684,6 +1963,53 @@ body {
     text-align: center;
   }
 
+  .tf-burndown-modern {
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .tf-burndown-modern__topbar,
+  .tf-burndown-modern__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-burndown-modern__topbar {
+    flex-direction: column;
+  }
+
+  .tf-burndown-modern__actions {
+    width: 100%;
+  }
+
+  .tf-burndown-modern__actions span {
+    flex: 1;
+  }
+
+  .tf-burndown-modern__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tf-burndown-modern__metric {
+    padding: 10px;
+  }
+
+  .tf-burndown-modern__metric > span {
+    height: 36px;
+    width: 36px;
+  }
+
+  .tf-burndown-modern__metric strong {
+    font-size: 18px;
+  }
+
+  .tf-burndown-modern__legend {
+    margin-left: 0;
+  }
+
+  .tf-burndown-modern__insight {
+    align-items: flex-start;
+  }
+
   .tf-dashboard__risk {
     grid-template-columns: 1fr;
   }
@@ -1763,3 +2089,4 @@ body {
     width: 28%;
   }
 }
+

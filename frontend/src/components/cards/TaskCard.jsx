@@ -5,7 +5,18 @@ import Avatar   from '../common/Avatar';
 import { COL_COLORS } from '../../utils/constants';
 import './cards.css';
 
-export default function TaskCard({ task, colStatus, currentUserId, draggable = true, isDragging, onDragStart, onDragEnd, onClick }) {
+export default function TaskCard({
+  task,
+  colStatus,
+  currentUserId,
+  draggable = true,
+  isDragging,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDrop,
+  onClick,
+}) {
   // Get column color for tag styling
   const colColor  = COL_COLORS[colStatus] || '#64748B';
   
@@ -40,6 +51,8 @@ export default function TaskCard({ task, colStatus, currentUserId, draggable = t
       draggable={draggable}
       onDragStart={draggable ? onDragStart : undefined}
       onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
       onClick={onClick}
     >
       {/* Tags + You badge */}

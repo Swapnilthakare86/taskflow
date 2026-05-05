@@ -6,6 +6,18 @@ const { body, param } = require('express-validator');
 const VALID_STATUS   = ['Backlog','To Do','In Progress','In Review','Blocked','Done'];
 const VALID_PRIORITY = ['Low','Medium','High','Critical'];
 
+function isTodayOrFutureDate(value) {
+  if (!value) return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return false;
+  const today = new Date();
+  const todayText = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0'),
+  ].join('-');
+  return String(value) >= todayText;
+}
+
 // Validation rules for creating a new task
 const createTaskValidator = [
   param('id').isInt({ min: 1 }).withMessage('Project ID must be a positive integer'),
@@ -27,7 +39,8 @@ const createTaskValidator = [
     .isIn(VALID_PRIORITY).withMessage(`Priority must be one of: ${VALID_PRIORITY.join(', ')}`),
   body('dueDate')
     .optional({ checkFalsy: true })
-    .isLength({ max: 30 }).withMessage('Due date must not exceed 30 characters'),
+    .isLength({ max: 30 }).withMessage('Due date must not exceed 30 characters')
+    .custom(isTodayOrFutureDate).withMessage('Due date must be today or a future date'),
   body('tags')
     .optional()
     .isArray().withMessage('Tags must be an array'),
@@ -57,7 +70,8 @@ const updateTaskValidator = [
     .isIn(VALID_PRIORITY).withMessage(`Priority must be one of: ${VALID_PRIORITY.join(', ')}`),
   body('dueDate')
     .optional({ checkFalsy: true })
-    .isLength({ max: 30 }).withMessage('Due date must not exceed 30 characters'),
+    .isLength({ max: 30 }).withMessage('Due date must not exceed 30 characters')
+    .custom(isTodayOrFutureDate).withMessage('Due date must be today or a future date'),
   body('tags')
     .optional()
     .isArray().withMessage('Tags must be an array'),
@@ -71,5 +85,4 @@ const updateStatusValidator = [
 ];
 
 module.exports = { createTaskValidator, updateTaskValidator, updateStatusValidator };
-
 

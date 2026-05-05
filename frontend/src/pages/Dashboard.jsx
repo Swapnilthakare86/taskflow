@@ -1,10 +1,22 @@
 ﻿import { useMemo } from 'react';
 import {
+  Area,
+  ComposedChart,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  Activity,
   AlertTriangle,
   CalendarClock,
   CheckCircle2,
   FolderKanban,
+  Flag,
   ListChecks,
+  Target,
   Timer,
   TrendingUp,
   Users,
@@ -29,6 +41,12 @@ function formatDate(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
+function formatShortDate(value) {
+  const date = parseDate(value);
+  if (!date) return '-';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function daysUntil(value) {
   const date = parseDate(value);
   if (!date) return null;
@@ -38,6 +56,107 @@ function daysUntil(value) {
   return Math.ceil((date - today) / 86400000);
 }
 
+function BurndownChart({ data, totalTasks = 0 }) {
+  const latest = data[data.length - 1] || { estimated: 0, actual: 0 };
+  const delta = latest.actual - latest.estimated;
+  const status = delta <= 0 ? 'On Track' : 'Behind Schedule';
+  const statusTone = delta <= 0 ? 'good' : 'risk';
+  const completed = Math.max(totalTasks - latest.actual, 0);
+  const insight = delta <= 0
+    ? `You are ${Math.abs(delta)} task${Math.abs(delta) === 1 ? '' : 's'} ahead of or matching the planned progress.`
+    : `You are ${delta} task${delta === 1 ? '' : 's'} behind the planned progress. Consider reallocating resources or adjusting scope.`;
+
+  const metricCards = [
+    { icon: ListChecks, label: 'Tasks Remaining', value: latest.actual, tone: 'purple' },
+    { icon: Flag, label: 'Total Planned', value: totalTasks, tone: 'amber' },
+    { icon: Target, label: 'Completed', value: completed, tone: 'blue' },
+  ];
+
+  return (
+    <section className="tf-card tf-dashboard__panel tf-dashboard__burndown-card">
+      <div className="tf-burndown-modern">
+        <div className="tf-burndown-modern__topbar">
+          <div>
+            <h3>Burndown Chart</h3>
+            <p>Track remaining tasks over time</p>
+          </div>
+        </div>
+
+        <div className="tf-burndown-modern__summary">
+          <div>
+            <span className="tf-burndown-modern__eyebrow">Sprint Health <Activity size={13} /></span>
+            <strong>{status}</strong>
+            <small>{Math.abs(delta)} task{Math.abs(delta) === 1 ? '' : 's'} {delta <= 0 ? 'ahead or on plan' : 'above plan'}</small>
+          </div>
+          <span className={`tf-burndown-modern__pill tf-burndown-modern__pill--${statusTone}`}>
+            <AlertTriangle size={15} /> {latest.actual} remaining
+          </span>
+
+          <div className="tf-burndown-modern__metrics">
+            {metricCards.map(({ icon: Icon, label, value, tone }) => (
+              <div className={`tf-burndown-modern__metric tf-burndown-modern__metric--${tone}`} key={label}>
+                <span><Icon size={20} /></span>
+                <div>
+                  <strong>{value}</strong>
+                  <small>{label}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="tf-burndown-modern__legend">
+          <span><i className="tf-burndown-modern__dot tf-burndown-modern__dot--planned" /> Planned</span>
+          <span><i className="tf-burndown-modern__dot tf-burndown-modern__dot--actual" /> Actual Remaining</span>
+        </div>
+
+      <ResponsiveContainer width="100%" height={160}>
+          <ComposedChart data={data} margin={{ top: 14, right: 12, left: -12, bottom: 14 }}>
+            <defs>
+              <linearGradient id="actualBurndownFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="#4f46e5" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 11, fill: '#64748b', fontWeight: 700 }}
+            tickLine={false}
+            axisLine={{ stroke: '#e2e8f0' }}
+            label={{ value: 'Project Timeline', position: 'insideBottom', offset: -9, fill: '#64748b', fontSize: 12, fontWeight: 900 }}
+          />
+            <YAxis
+            allowDecimals={false}
+            tick={{ fontSize: 11, fill: '#64748b', fontWeight: 700 }}
+            tickLine={false}
+            axisLine={false}
+            label={{ value: 'Tasks', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 12, fontWeight: 900 }}
+          />
+          <Tooltip
+            contentStyle={{ border: '1px solid #dbe3ef', borderRadius: 14, boxShadow: '0 18px 40px rgba(15,23,42,.14)' }}
+            formatter={(value, name, item) => {
+              const label = item?.dataKey === 'estimated' ? 'Planned' : 'Actual Remaining';
+              return [`${value} task${Number(value) === 1 ? '' : 's'}`, label];
+            }}
+            labelFormatter={(_, items) => {
+              const payload = items?.[0]?.payload;
+              return payload?.date ? `${payload.label} (Day ${payload.day})` : 'Project timeline';
+            }}
+          />
+            <Line type="monotone" dataKey="estimated" stroke="#f97316" strokeWidth={3} dot={false} name="Planned" strokeDasharray="7 7" />
+            <Area type="monotone" dataKey="actual" stroke="#4f46e5" strokeWidth={4} fill="url(#actualBurndownFill)" dot={{ r: 4, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 7 }} name="Actual Remaining" />
+          </ComposedChart>
+        </ResponsiveContainer>
+
+        <div className={`tf-burndown-modern__insight tf-burndown-modern__insight--${statusTone}`}>
+          <span><Activity size={16} /></span>
+          <strong>{status.toLowerCase()}</strong>
+          <p>{insight}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
 function ProgressBar({ value, color = '#10b981' }) {
   return (
     <div className="tf-dash-progress">
@@ -142,6 +261,82 @@ export default function Dashboard() {
       .slice(0, 6);
   }, [visibleTasks]);
 
+  const burndownData = useMemo(() => {
+    if (!visibleTasks.length) return [];
+
+    const createdDates = visibleTasks
+      .map((task) => parseDate(task.created_at || task.updated_at))
+      .filter(Boolean);
+    const dueDates = visibleTasks
+      .map((task) => parseDate(task.due_date))
+      .filter(Boolean);
+    const projectStart = parseDate(activeProject?.created_at);
+    const projectDeadline = parseDate(activeProject?.deadline);
+    const startCandidates = [...createdDates, projectStart].filter(Boolean);
+    const endCandidates = [...dueDates, projectDeadline, new Date()].filter(Boolean);
+    const start = startCandidates.length
+      ? new Date(Math.min(...startCandidates.map((date) => date.getTime())))
+      : (projectStart || new Date());
+    const finalDate = endCandidates.length
+      ? new Date(Math.max(...endCandidates.map((date) => date.getTime()), start.getTime()))
+      : new Date(start);
+
+    start.setHours(0, 0, 0, 0);
+    finalDate.setHours(0, 0, 0, 0);
+
+    const totalDays = Math.max(1, Math.round((finalDate - start) / 86400000) + 1);
+    const totalTasks = visibleTasks.length;
+    const createdByDate = new Map();
+    const dueByDate = new Map();
+    const completedByDate = new Map();
+
+    visibleTasks.forEach((task) => {
+      const createdDate = parseDate(task.created_at || task.updated_at) || start;
+      createdDate.setHours(0, 0, 0, 0);
+      const createdDay = Math.min(Math.max(1, Math.round((createdDate - start) / 86400000) + 1), totalDays);
+      createdByDate.set(createdDay, (createdByDate.get(createdDay) || 0) + 1);
+
+      const dueDate = parseDate(task.due_date) || projectDeadline || finalDate;
+      dueDate.setHours(0, 0, 0, 0);
+      const dueDay = Math.min(Math.max(1, Math.round((dueDate - start) / 86400000) + 1), totalDays);
+      dueByDate.set(dueDay, (dueByDate.get(dueDay) || 0) + 1);
+
+      if (task.status === 'Done') {
+        const doneDate = parseDate(task.updated_at || task.created_at) || dueDate;
+        doneDate.setHours(0, 0, 0, 0);
+        const doneDay = Math.min(Math.max(1, Math.round((doneDate - start) / 86400000) + 1), totalDays);
+        completedByDate.set(doneDay, (completedByDate.get(doneDay) || 0) + 1);
+      }
+    });
+
+    const step = totalDays > 12 ? Math.ceil(totalDays / 10) : 1;
+    const rows = [];
+    let created = 0;
+    let plannedCompleted = 0;
+    let completed = 0;
+
+    for (let day = 1; day <= totalDays; day++) {
+      created += createdByDate.get(day) || 0;
+      plannedCompleted += dueByDate.get(day) || 0;
+      completed += completedByDate.get(day) || 0;
+
+      const shouldAddPoint = day === 1 || day === totalDays || ((day - 1) % step === 0);
+      if (!shouldAddPoint) continue;
+
+      const estimated = Math.max(Math.round(totalTasks - ((day - 1) * totalTasks) / Math.max(totalDays - 1, 1)), 0);
+      const pointDate = new Date(start);
+      pointDate.setDate(start.getDate() + day - 1);
+      rows.push({
+        day,
+        date: pointDate.toISOString(),
+        label: formatShortDate(pointDate),
+        estimated: dueDates.length ? Math.max(totalTasks - plannedCompleted, 0) : estimated,
+        actual: Math.max(created - completed, 0),
+      });
+    }
+
+    return rows;
+  }, [activeProject?.created_at, activeProject?.deadline, visibleTasks]);
   const progress = activeProject?.progress || 0;
 
   if (!activeProject) {
@@ -222,6 +417,14 @@ export default function Dashboard() {
               {!risk.blocked.length && <div className="tf-dashboard__empty">No blocked tasks.</div>}
             </div>
           </section>
+
+          {burndownData.length ? (
+            <BurndownChart data={burndownData} totalTasks={visibleTasks.length} />
+          ) : (
+            <section className="tf-card tf-dashboard__panel">
+              <div className="tf-dashboard__empty">No task data yet.</div>
+            </section>
+          )}
         </div>
 
         <div className="tf-dashboard__column">
@@ -274,8 +477,19 @@ export default function Dashboard() {
               {!latestTasks.length && <div className="tf-dashboard__empty">No task activity yet.</div>}
             </div>
           </section>
+
         </div>
       </div>
+
     </div>
   );
 }
+
+
+
+
+
+
+
+
+

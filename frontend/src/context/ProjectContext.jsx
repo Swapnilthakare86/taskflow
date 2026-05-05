@@ -74,6 +74,16 @@ export function ProjectProvider({ children }) {
     setProjects((prev) => prev.map((p) => (p.id === projectId ? { ...p, ...changes } : p)));
   }, []);
 
+  // Real-time progress update hook
+  useEffect(() => {
+    if (!activeProject) return;
+    // Re-fetch projects every 5 seconds to sync progress
+    const interval = setInterval(() => {
+      fetchProjects();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [activeProject, fetchProjects]);
+
   return (
     <ProjectContext.Provider value={{
       projects, activeProject, activeId, setActiveId: selectProject,

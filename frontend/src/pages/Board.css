@@ -27,6 +27,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+  padding-bottom: 120px;
 }
 
 .tf-board-col__zone--over { border-style: solid; }
@@ -80,6 +82,9 @@
 .tf-board-col {
   min-width: 0;
   scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 360px);
 }
 
 @media (max-width: 767px) {
@@ -98,6 +103,7 @@
 
   .tf-board-col__zone {
     min-height: 150px;
+    padding-bottom: 24px;
   }
 
   .tf-board-detail__chips,
